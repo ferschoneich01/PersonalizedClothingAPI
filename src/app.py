@@ -4,6 +4,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from funciones import *
 from sqlalchemy.sql import text
+#objeto
+from model.users import users
 
 app = Flask(__name__)
 
@@ -21,10 +23,23 @@ tasks = [
     {"id": 2, "title": "Tarea 2", "done": True},
 ]
 
+usersList = []
 # Ruta para obtener todas las tareas (GET)
-@app.route('/tasks', methods=['GET'])
-def get_tasks():
-    return jsonify({"tasks": tasks})
+@app.route('/getUsers', methods=['GET'])
+def getUsers():
+
+    usersDBList = db.execute(
+            text("SELECT * FROM users limit 100")).fetchall()
+
+    for i in range(len(usersDBList)):
+        user = users(id_user=usersDBList[i][0],username=usersDBList[i][1],
+                     password=usersDBList[i][2],email=usersDBList[i][3],
+                     person=usersDBList[i][4],role=usersDBList[i][5])
+        
+        usersList.append(user.to_json())
+        i+=1
+
+    return jsonify({"users": usersList})
 
 # Ruta para obtener una tarea por su ID (GET)
 @app.route('/getUser/<string:username>', methods=['GET'])

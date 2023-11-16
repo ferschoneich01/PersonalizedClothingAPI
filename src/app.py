@@ -44,14 +44,15 @@ def getUsers():
 # Ruta para obtener una tarea por su ID (GET)
 @app.route('/getUser/<string:username>', methods=['GET'])
 def get_user(username):
-    print(limpiarString(username))
-    user = db.execute(
-            text("SELECT * FROM users WHERE username = '"+str(username)+"'")).fetchall()
 
-    user = next((user for u in user if user[0][1] == username), None)
+    userDB = db.execute(
+            text("SELECT * FROM users WHERE username = '"+str(limpiarString(username))+"'")).fetchall()
+    u = users(id_user=userDB[0][0],username=userDB[0][1],
+                     password=userDB[0][2],email=userDB[0][3],
+                     person=userDB[0][4],role=userDB[0][5])
     
-    if user is not None:
-        return jsonify({"user": user})
+    if u is not None:       
+        return jsonify({"user": u.to_json()})
     
     return jsonify({"error": "El usuario no existe"}, 404)
 

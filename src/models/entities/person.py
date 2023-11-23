@@ -8,8 +8,8 @@ class person:
         self.lastname=lastname
         self.birthday=birthday
         self.phone=phone
-        self.country
-        self.city
+        self.country=country
+        self.city=city
         self.sex=sex
 
     def to_json(self):

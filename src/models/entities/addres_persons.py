@@ -9,4 +9,9 @@ class addres_person:
         
     def to_json(self):
         # Convertir el objeto a un diccionario y luego a una cadena JSON
-        return json.dumps(self.__dict__)
+        return {
+            'id_addres_person': self.id_addres_person,
+            'address': self.address,
+            'person': self.person,
+            'city': self.city
+        }

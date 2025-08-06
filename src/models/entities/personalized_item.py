@@ -9,4 +9,9 @@ class personalized_item:
         
     def to_json(self):
         # Convertir el objeto a un diccionario y luego a una cadena JSON
-        return json.dumps(self.__dict__)
+        return {
+            'id_pitem': self.id_pitem,
+            'indications': self.indications,
+            'design': self.design,
+            'position': self.position
+        }

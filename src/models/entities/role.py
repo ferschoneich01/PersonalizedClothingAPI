@@ -6,5 +6,8 @@ class role:
         self.name=name
         
     def to_json(self):
-        # Convertir el objeto a un diccionario y luego a una cadena JSON
-        return json.dumps(self.__dict__)
+       
+        return {
+            'id_role': self.id_role,
+            'name': self.name
+        }

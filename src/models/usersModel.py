@@ -44,9 +44,9 @@ class usersModel():
             usersList=[]
             usersDBList = db.execute(
                 text("SELECT * FROM users where username = '"+str(username)+"'")).fetchall()
-
+            
             for i in range(len(usersDBList)):
-                user = users(id_user=None,username=usersDBList[i][1],
+                user = users(id_user=usersDBList[i][0],username=usersDBList[i][1],
                             password=usersDBList[i][2],email=usersDBList[i][3],
                             person=usersDBList[i][4],role=usersDBList[i][5],status_user=usersDBList[i][6])
                 

@@ -9,5 +9,11 @@ class shipping:
         self.address=address
         
     def to_json(self):
-        # Convertir el objeto a un diccionario y luego a una cadena JSON
-        return json.dumps(self.__dict__)
+        
+        return {
+            'id_shipping': self.id_shipping,
+            'shipdate': self.shipdate,
+            'cost': self.cost,
+            'id_order': self.id_order,
+            'address': self.address
+        }

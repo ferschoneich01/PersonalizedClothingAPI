@@ -1,31 +1,35 @@
 from flask import Blueprint,jsonify, request
-from werkzeug.security import generate_password_hash
 
 #entities
-
-from models.entities.users import users
-
-from models.entities.person import person
+from models.entities.orders import orders
 
 #models
-from models.usersModel import usersModel
+from models.ordersModel import ordersModel
 
-main = Blueprint('users_blueprint', __name__)
+main = Blueprint('orders_blueprint', __name__)
 
 @main.route('/', methods=['GET'])
-def get_users():
+def get_orders():
     try:
-        users = usersModel.get_users()
-        return jsonify(users)
+        ordersList = ordersModel.get_orders()
+        return jsonify(ordersList)
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
     
-@main.route('/<id>')
-def get_userbyId(id):
+@main.route('/shippings', methods=['GET'])
+def get_shipping():
     try:
-        user = usersModel.get_userbyId(id)
-        if user != None:
-            return jsonify(user)
+        ordersList = ordersModel.get_shipping()
+        return jsonify(ordersList)
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500
+    
+@main.route('/<username>')
+def get_userbyUsername(username):
+    try:
+        ordersList = ordersModel.get_userbyUsername(username)
+        if ordersList != None:
+            return jsonify(ordersList)
         else:
             return jsonify({}), 404
     except Exception as ex:
@@ -33,25 +37,14 @@ def get_userbyId(id):
 
 
 @main.route('/add', methods=['POST'])
-def add_user():
+def add_order():
     try:
+
+        address = request.json["address"]
         username = request.json["username"]
-        password = generate_password_hash(request.json["password"])
-        email = request.json["email"]
-        cedula = request.json["cedula"]
-        name = request.json["name"]
-        lastname = request.json["lastname"]
-        birthday = request.json["birthday"]
-        phone = request.json["phone"]
-        city = request.json["city"]
-        sex = request.json["sex"]
+        carListItems = request.json["carListItems"]
 
-        #set data
-        user = users(id_user=0,username=username, password=password,email=email,person=None, role=2,status_user= 1)
-       
-        persondata = person(id_person=0, cedula=cedula,name=name,lastname=lastname,birthday=birthday,phone=phone,country='Nicaragua',city=city,sex=sex)
-
-        affected_rows = usersModel.add_user(user,persondata)
+        affected_rows = ordersModel.add_order(address,username,carListItems)
 
         if affected_rows == 1:
             return jsonify({"message":"usuario registrado exitosamente!"})
@@ -61,9 +54,9 @@ def add_user():
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
 
-
+""""
 @main.route('/update/<id>', methods=['PUT'])
-def update_user(id):
+def update_order(id):
     try:
         #userdata
         password = request.json['password']
@@ -81,20 +74,18 @@ def update_user(id):
             return jsonify({'message': "No user updated"}), 404
 
     except Exception as ex:
-        return jsonify({'message': str(ex)}), 500
+        return jsonify({'message': str(ex)}), 500"""
 
 
-@main.route('/delete/<id>', methods=['DELETE'])
-def delete_user(id):
+@main.route('/changeStatus', methods=['PUT'])
+def changeStatus():
     try:
-        user = users(id)
-
-        affected_rows = usersModel.delete_user(user)
+        affected_rows = ordersModel.changeStatus(request.json["id_order"],request.json["status"])
 
         if affected_rows == 1:
-            return jsonify(user.id_user)
+            return jsonify({"message":"Estado Cambiado"})
         else:
-            return jsonify({'message': "No user deleted"}), 404
+            return jsonify({'message': "No order update"}), 404
 
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500

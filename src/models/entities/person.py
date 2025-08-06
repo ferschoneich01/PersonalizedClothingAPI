@@ -14,4 +14,14 @@ class person:
 
     def to_json(self):
         # Convertir el objeto a un diccionario y luego a una cadena JSON
-        return json.dumps(self.__dict__)
+        return {
+            'id_person': self.id_person,
+            'cedula': self.cedula,
+            'name': self.name,
+            'lastname': self.lastname,
+            'birthday': self.birthday,
+            'phone': self.phone,
+            'country': self.country,
+            'city': self.city,
+            'sex': self.sex
+        }

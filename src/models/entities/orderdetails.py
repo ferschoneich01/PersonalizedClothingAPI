@@ -11,4 +11,11 @@ class orderdetails:
         
     def to_json(self):
         # Convertir el objeto a un diccionario y luego a una cadena JSON
-        return json.dumps(self.__dict__)
+        return {
+            'id_orderdetail': self.id_orderdetail,
+            'color': self.color,
+            'size': self.size,
+            'item': self.item,
+            'quantity': self.quantity,
+            'id_order': self.id_order
+        }

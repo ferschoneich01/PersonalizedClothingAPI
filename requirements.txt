@@ -25,7 +25,6 @@ six
 SQLAlchemy
 sqlparse
 urllib3
-virtualenv
 Werkzeug
-python-dotenv
 flask_cors
+rivescript

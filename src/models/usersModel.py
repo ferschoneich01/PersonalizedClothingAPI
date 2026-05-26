@@ -1,100 +1,112 @@
-from flask import Flask
-from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
-from funciones import *
 from sqlalchemy.sql import text
-#objeto
+from database import db
 from .entities.users import users
 
-app = Flask(__name__)
-
-# Check for environment variable
-if not os.getenv("DATABASE_URL"):
-    raise RuntimeError("DATABASE_URL is not set")
-
-# Set up database
-engine = create_engine(os.getenv("DATABASE_URL"))
-db = scoped_session(sessionmaker(bind=engine))
 
 class usersModel():
 
     @classmethod
-    def get_users(self):
+    def get_users(cls):
         try:
-            usersList=[]
-            usersDBList = db.execute(
-                text("SELECT * FROM users")).fetchall()
+            users_list = []
+            rows = db.execute(text("SELECT * FROM sp_get_users()")).fetchall()
 
-            for i in range(len(usersDBList)):
-                user = users(id_user=usersDBList[i][0],username=usersDBList[i][1],
-                            password=usersDBList[i][2],email=usersDBList[i][3],
-                            person=usersDBList[i][4],role=usersDBList[i][5],status_user=usersDBList[i][6])
-                
-                usersList.append(user.to_json())
-                i+=1
+            for row in rows:
+                user = users(
+                    id_user=row[0], username=row[1], password=row[2],
+                    email=row[3], person=row[4], role=row[5], status_user=row[6]
+                )
+                users_list.append(user.to_json())
 
-            return usersList
-        except Exception as ex:
-            raise Exception(ex)
-        
-
-    @classmethod
-    def get_userbyId(self, username):
-        try:
-            usersList=[]
-            usersDBList = db.execute(
-                text("SELECT * FROM users where username = '"+str(username)+"'")).fetchall()
-            
-            for i in range(len(usersDBList)):
-                user = users(id_user=usersDBList[i][0],username=usersDBList[i][1],
-                            password=usersDBList[i][2],email=usersDBList[i][3],
-                            person=usersDBList[i][4],role=usersDBList[i][5],status_user=usersDBList[i][6])
-                
-                usersList.append(user.to_json())
-                i+=1
-
-            return usersList
+            return users_list
         except Exception as ex:
             raise Exception(ex)
 
     @classmethod
-    def add_user(self, user, person):
+    def get_userbyId(cls, username):
         try:
-            # Query database for person
-            db.execute(text("INSERT INTO person (cedula,name,lastname,birthday,phone,country,city,sex) VALUES ('"+str(person.cedula)+"','"+str(person.name)+
-                       "','"+str(person.lastname)+"','"+str(person.birthday)+"','"+str(person.phone)+"','Nicaragua','"+str(person.city)+"','"+str(person.sex)+"')"))
-            db.commit()
-            # Query selection id person
-            id_person = db.execute(text(
-                "SELECT * FROM person WHERE cedula = '"+person.cedula+"'")).fetchall()
-            
-            db.execute(text("INSERT INTO users (username,password,email,person,role,status_user) VALUES ('" +
-                       str(user.username)+"','"+str(user.password)+"','"+str(user.email)+"',"+str(id_person[0][0])+",2,1)"))
-            db.commit()
+            users_list = []
+            rows = db.execute(
+                text("SELECT * FROM sp_get_user_by_username(:username)"),
+                {"username": username}
+            ).fetchall()
 
-            db.close()
+            for row in rows:
+                user = users(
+                    id_user=row[0], username=row[1], password=row[2],
+                    email=row[3], person=row[4], role=row[5], status_user=row[6]
+                )
+                users_list.append(user.to_json())
 
-            return 1
+            return users_list
         except Exception as ex:
             raise Exception(ex)
 
     @classmethod
-    def update_user(self, user):
+    def add_user(cls, user, person):
         try:
-            db.execute(text("UPDATE users set password = '"+str(user.password)+"', role = '"+str(user.role)+"', email = '"+str(user.email)+"', status_user = '"+str(user.status_user)+"'"
-                            +"WHERE id_user = '"+str(user.id_user)+"'"))
-            
-            db.commit()
-            db.close()
-            return 1
-        except Exception as ex:
-            raise Exception(ex)
-
-    @classmethod
-    def delete_user(self, user):
-        try:
-            db.execute(text("UPDATE users set status_user = 2 WHERE id_user = '"+str(user.id_user)+"'"))
+            db.execute(
+                text("CALL sp_add_user(:username, :password, :email, :cedula, :name, :lastname, :birthday, :phone, :city, :sex)"),
+                {
+                    "username":  user.username,
+                    "password":  user.password,
+                    "email":     user.email,
+                    "cedula":    person.cedula,
+                    "name":      person.name,
+                    "lastname":  person.lastname,
+                    "birthday":  person.birthday,
+                    "phone":     person.phone,
+                    "city":      person.city,
+                    "sex":       person.sex,
+                }
+            )
             db.commit()
             return 1
         except Exception as ex:
+            db.rollback()
+            raise Exception(ex)
+
+    @classmethod
+    def update_user(cls, user):
+        try:
+            db.execute(
+                text("CALL sp_update_user(:id_user, :password, :role, :email, :status_user)"),
+                {
+                    "id_user":     user.id_user,
+                    "password":    user.password,
+                    "role":        user.role,
+                    "email":       user.email,
+                    "status_user": user.status_user,
+                }
+            )
+            db.commit()
+            return 1
+        except Exception as ex:
+            db.rollback()
+            raise Exception(ex)
+
+    @classmethod
+    def delete_user(cls, user):
+        try:
+            db.execute(
+                text("CALL sp_delete_user(:id_user)"),
+                {"id_user": user.id_user}
+            )
+            db.commit()
+            return 1
+        except Exception as ex:
+            db.rollback()
+            raise Exception(ex)
+
+    @classmethod
+    def reset_password(cls, email, new_password):
+        try:
+            db.execute(
+                text("CALL sp_reset_password(:email, :password)"),
+                {"email": email, "password": new_password}
+            )
+            db.commit()
+            return 1
+        except Exception as ex:
+            db.rollback()
             raise Exception(ex)

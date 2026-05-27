@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY . /app
 
-# Instala dependencias necesarias
+# Instala dependencias del sistema necesarias
 RUN apk update \
     && apk add --no-cache \
     gcc \
@@ -15,10 +15,19 @@ RUN apk update \
     cairo-dev \
     pango-dev \
     libc-dev \
-    gobject-introspection-dev \
-    && pip install --no-cache-dir psycopg2
+    gobject-introspection-dev
 
-RUN pip3 --no-cache-dir install -r requirements.txt
+# Instala paquetes críticos primero (antes de requirements.txt)
+RUN pip install --no-cache-dir \
+    gunicorn \
+    flask \
+    flask-cors \
+    python-dotenv \
+    psycopg2
+
+# Instala el resto de dependencias (continúa aunque algún paquete opcional falle)
+RUN pip3 --no-cache-dir install -r requirements.txt || \
+    pip3 --no-cache-dir install -r requirements.txt --ignore-installed
 
 WORKDIR /app/src
 

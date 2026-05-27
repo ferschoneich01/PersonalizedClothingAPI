@@ -28,3 +28,4 @@ urllib3
 Werkzeug
 flask_cors
 rivescript
+python-dotenv

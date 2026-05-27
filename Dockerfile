@@ -11,7 +11,7 @@ RUN apk update \
     python3-dev \
     musl-dev \
     postgresql-dev \
-    gdk-pixbuf \
+    gdk-pixbuf-dev \
     cairo-dev \
     pango-dev \
     libc-dev \
@@ -20,4 +20,6 @@ RUN apk update \
 
 RUN pip3 --no-cache-dir install -r requirements.txt
 
-CMD [ "python3", "src/app.py" ]
+WORKDIR /app/src
+
+CMD [ "gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--timeout", "120", "app:app" ]

@@ -2,10 +2,13 @@ from flask import Flask
 from flask_cors import CORS
 from routes import users, orders, messages, items
 import os
-from dotenv import load_dotenv
 
-# Cargar variables de entorno (desde la carpeta src)
-load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
+# Cargar variables de entorno localmente (en producción vienen de fly secrets)
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
+except ImportError:
+    pass  # python-dotenv no disponible en producción — OK
 
 app = Flask(__name__)
 

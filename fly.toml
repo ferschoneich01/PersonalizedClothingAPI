@@ -8,6 +8,9 @@ primary_region = "mia"
 
 [build]
 
+[processes]
+  app = "gunicorn --bind 0.0.0.0:8080 --workers 2 --timeout 120 --chdir /app/src app:app"
+
 [http_service]
   internal_port = 8080
   force_https = true

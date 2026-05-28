@@ -54,6 +54,8 @@ class ordersModel():
                     "id_order":       row[12],
                     "quantityOrders": row[13],
                     "custom_image":   row[14],
+                    "paymethod":      row[15] if len(row) > 15 else "Efectivo",
+                    "voucher_url":    row[16] if len(row) > 16 else None,
                 })
 
             return orders_list
@@ -120,6 +122,8 @@ class ordersModel():
                     "id_order":       row[13],
                     "quantityOrders": row[14],
                     "custom_image":   row[15],
+                    "order_paymethod": row[16] if len(row) > 16 else "Efectivo",
+                    "voucher_url":     row[17] if len(row) > 17 else None,
                 })
 
             return buys_list
@@ -127,11 +131,11 @@ class ordersModel():
             raise Exception(ex)
 
     @classmethod
-    def add_order(cls, address, username, carListItems):
+    def add_order(cls, address, username, carListItems, paymethod='Efectivo'):
         try:
             result = db.execute(
-                text("CALL sp_create_order(:username, :address, NULL)"),
-                {"username": username, "address": address}
+                text("SELECT * FROM sp_create_order(:username, :address, :paymethod)"),
+                {"username": username, "address": address, "paymethod": paymethod}
             ).fetchone()
             
             id_order = result[0]
@@ -167,6 +171,19 @@ class ordersModel():
             db.execute(
                 text("CALL sp_change_order_status(:id_order, :status)"),
                 {"id_order": int(id_order), "status": str(status)}
+            )
+            db.commit()
+            return 1
+        except Exception as ex:
+            db.rollback()
+            raise Exception(ex)
+
+    @classmethod
+    def upload_voucher(cls, id_order, voucher_url):
+        try:
+            db.execute(
+                text("CALL sp_upload_voucher(:id_order, :voucher_url)"),
+                {"id_order": int(id_order), "voucher_url": str(voucher_url)}
             )
             db.commit()
             return 1

@@ -50,13 +50,32 @@ def add_order():
         address       = request.json["address"]
         username      = request.json["username"]
         carListItems  = request.json["carListItems"]
+        paymethod     = request.json.get("paymethod", "Efectivo")  # NUEVO
 
-        affected_rows = ordersModel.add_order(address, username, carListItems)
+        affected_rows = ordersModel.add_order(address, username, carListItems, paymethod)
 
         if affected_rows == 1:
             return jsonify({"message": "Orden registrada exitosamente!"}), 201
         else:
             return jsonify({'message': "Error al registrar la orden"}), 500
+
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500
+
+
+@main.route('/upload-voucher', methods=['PUT'])
+def upload_voucher():
+    """Guarda la URL del comprobante de depósito para una orden."""
+    try:
+        id_order    = request.json["id_order"]
+        voucher_url = request.json["voucher_url"]
+
+        affected_rows = ordersModel.upload_voucher(id_order, voucher_url)
+
+        if affected_rows == 1:
+            return jsonify({"message": "Comprobante guardado correctamente"})
+        else:
+            return jsonify({'message': "Orden no encontrada"}), 404
 
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500

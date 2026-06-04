@@ -160,7 +160,7 @@ class ordersModel():
                     }
                 )
                 db.commit()
-            return 1
+            return id_order
         except Exception as ex:
             db.rollback()
             raise Exception(ex)

@@ -52,10 +52,10 @@ def add_order():
         carListItems  = request.json["carListItems"]
         paymethod     = request.json.get("paymethod", "Efectivo")  # NUEVO
 
-        affected_rows = ordersModel.add_order(address, username, carListItems, paymethod)
+        id_order = ordersModel.add_order(address, username, carListItems, paymethod)
 
-        if affected_rows == 1:
-            return jsonify({"message": "Orden registrada exitosamente!"}), 201
+        if id_order:
+            return jsonify({"message": "Orden registrada exitosamente!", "id_order": id_order}), 201
         else:
             return jsonify({'message': "Error al registrar la orden"}), 500
 

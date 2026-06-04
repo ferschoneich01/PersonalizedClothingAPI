@@ -51,8 +51,19 @@ def add_order():
         username      = request.json["username"]
         carListItems  = request.json["carListItems"]
         paymethod     = request.json.get("paymethod", "Efectivo")  # NUEVO
+        id_canal      = request.json.get("id_canal_de_ventas", 1)  # NUEVO
+        pedidoNombre  = request.json.get("pedidoNombre", None)     # NUEVO
+        cedula        = request.json.get("cedula", None)           # NUEVO
 
-        id_order = ordersModel.add_order(address, username, carListItems, paymethod)
+        id_order = ordersModel.add_order(
+            address=address,
+            username=username,
+            carListItems=carListItems,
+            paymethod=paymethod,
+            id_canal_de_ventas=id_canal,
+            pedidoNombre=pedidoNombre,
+            cedula=cedula
+        )
 
         if id_order:
             return jsonify({"message": "Orden registrada exitosamente!", "id_order": id_order}), 201

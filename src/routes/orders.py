@@ -47,13 +47,14 @@ def get_userbyUsername(username):
 @main.route('/add', methods=['POST'])
 def add_order():
     try:
-        address       = request.json["address"]
-        username      = request.json["username"]
-        carListItems  = request.json["carListItems"]
-        paymethod     = request.json.get("paymethod", "Efectivo")  # NUEVO
-        id_canal      = request.json.get("id_canal_de_ventas", 1)  # NUEVO
-        pedidoNombre  = request.json.get("pedidoNombre", None)     # NUEVO
-        cedula        = request.json.get("cedula", None)           # NUEVO
+        address        = request.json["address"]
+        username       = request.json["username"]
+        carListItems   = request.json["carListItems"]
+        paymethod      = request.json.get("paymethod", "Efectivo")
+        id_canal       = request.json.get("id_canal_de_ventas", 1)
+        pedidoNombre   = request.json.get("pedidoNombre", None)
+        cedula         = request.json.get("cedula", None)
+        pedidoTelefono = request.json.get("pedidoTelefono", None)
 
         id_order = ordersModel.add_order(
             address=address,
@@ -62,7 +63,8 @@ def add_order():
             paymethod=paymethod,
             id_canal_de_ventas=id_canal,
             pedidoNombre=pedidoNombre,
-            cedula=cedula
+            cedula=cedula,
+            pedidoTelefono=pedidoTelefono
         )
 
         if id_order:

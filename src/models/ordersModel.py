@@ -12,8 +12,8 @@ class ordersModel():
             rows = db.execute(text("SELECT * FROM sp_get_orders()")).fetchall()
 
             # Fetch additional order details from orders table
-            additional_rows = db.execute(text("SELECT id_order, id_canal_de_ventas, pedidoNombre, cedula FROM orders")).fetchall()
-            order_extra = {row[0]: {"id_canal_de_ventas": row[1], "pedidoNombre": row[2], "cedula": row[3]} for row in additional_rows}
+            additional_rows = db.execute(text("SELECT id_order, id_canal_de_ventas, pedidoNombre, cedula, pedidoTelefono FROM orders")).fetchall()
+            order_extra = {row[0]: {"id_canal_de_ventas": row[1], "pedidoNombre": row[2], "cedula": row[3], "pedidoTelefono": row[4]} for row in additional_rows}
 
             for i, row in enumerate(rows):
                 id_order = row[10]
@@ -41,6 +41,7 @@ class ordersModel():
                     "id_canal_de_ventas": id_canal,
                     "pedidoNombre": ped_nombre,
                     "cedula":       cedula if cedula else "",
+                    "pedidoTelefono": extra.get("pedidoTelefono") if extra.get("pedidoTelefono") else "",
                 })
 
             return orders_list
@@ -54,8 +55,8 @@ class ordersModel():
             rows = db.execute(text("SELECT * FROM sp_get_order_details()")).fetchall()
 
             # Fetch additional order details from orders table
-            additional_rows = db.execute(text("SELECT id_order, id_canal_de_ventas, pedidoNombre, cedula FROM orders")).fetchall()
-            order_extra = {row[0]: {"id_canal_de_ventas": row[1], "pedidoNombre": row[2], "cedula": row[3]} for row in additional_rows}
+            additional_rows = db.execute(text("SELECT id_order, id_canal_de_ventas, pedidoNombre, cedula, pedidoTelefono FROM orders")).fetchall()
+            order_extra = {row[0]: {"id_canal_de_ventas": row[1], "pedidoNombre": row[2], "cedula": row[3], "pedidoTelefono": row[4]} for row in additional_rows}
 
             for i, row in enumerate(rows):
                 id_order = row[12]
@@ -85,6 +86,7 @@ class ordersModel():
                     "id_canal_de_ventas": id_canal,
                     "pedidoNombre":    ped_nombre,
                     "cedula":          cedula if cedula else "",
+                    "pedidoTelefono":  extra.get("pedidoTelefono") if extra.get("pedidoTelefono") else "",
                 })
 
             return orders_list
@@ -98,8 +100,8 @@ class ordersModel():
             rows = db.execute(text("SELECT * FROM sp_get_shipping()")).fetchall()
 
             # Fetch additional order details from orders table
-            additional_rows = db.execute(text("SELECT id_order, id_canal_de_ventas, pedidoNombre, cedula FROM orders")).fetchall()
-            order_extra = {row[0]: {"id_canal_de_ventas": row[1], "pedidoNombre": row[2], "cedula": row[3]} for row in additional_rows}
+            additional_rows = db.execute(text("SELECT id_order, id_canal_de_ventas, pedidoNombre, cedula, pedidoTelefono FROM orders")).fetchall()
+            order_extra = {row[0]: {"id_canal_de_ventas": row[1], "pedidoNombre": row[2], "cedula": row[3], "pedidoTelefono": row[4]} for row in additional_rows}
 
             for i, row in enumerate(rows):
                 id_order = row[12]
@@ -133,7 +135,8 @@ class ordersModel():
                     "cedula":          client_cedula if client_cedula else "",
                     "city":            row[18],
                     "id_canal_de_ventas": id_canal,
-                    "pedidoNombre":    ped_nombre
+                    "pedidoNombre":    ped_nombre,
+                    "pedidoTelefono":  extra.get("pedidoTelefono") if extra.get("pedidoTelefono") else "",
                 })
 
             return orders_list
@@ -150,8 +153,8 @@ class ordersModel():
             ).fetchall()
 
             # Fetch additional order details from orders table
-            additional_rows = db.execute(text("SELECT id_order, id_canal_de_ventas, pedidoNombre, cedula FROM orders")).fetchall()
-            order_extra = {row[0]: {"id_canal_de_ventas": row[1], "pedidoNombre": row[2], "cedula": row[3]} for row in additional_rows}
+            additional_rows = db.execute(text("SELECT id_order, id_canal_de_ventas, pedidoNombre, cedula, pedidoTelefono FROM orders")).fetchall()
+            order_extra = {row[0]: {"id_canal_de_ventas": row[1], "pedidoNombre": row[2], "cedula": row[3], "pedidoTelefono": row[4]} for row in additional_rows}
 
             for i, row in enumerate(rows):
                 id_order = row[13]
@@ -182,6 +185,7 @@ class ordersModel():
                     "id_canal_de_ventas": id_canal,
                     "pedidoNombre":    ped_nombre,
                     "cedula":          cedula if cedula else "",
+                    "pedidoTelefono":  extra.get("pedidoTelefono") if extra.get("pedidoTelefono") else "",
                 })
 
             return buys_list
@@ -189,7 +193,7 @@ class ordersModel():
             raise Exception(ex)
 
     @classmethod
-    def add_order(cls, address, username, carListItems, paymethod='Efectivo', id_canal_de_ventas=1, pedidoNombre=None, cedula=None):
+    def add_order(cls, address, username, carListItems, paymethod='Efectivo', id_canal_de_ventas=1, pedidoNombre=None, cedula=None, pedidoTelefono=None):
         try:
             result = db.execute(
                 text("SELECT * FROM sp_create_order(:username, :address, :paymethod)"),
@@ -200,11 +204,12 @@ class ordersModel():
 
             # Update new order fields before committing details
             db.execute(
-                text("UPDATE orders SET id_canal_de_ventas = :id_canal_de_ventas, pedidoNombre = :pedidoNombre, cedula = :cedula WHERE id_order = :id_order"),
+                text("UPDATE orders SET id_canal_de_ventas = :id_canal_de_ventas, pedidoNombre = :pedidoNombre, cedula = :cedula, pedidoTelefono = :pedidoTelefono WHERE id_order = :id_order"),
                 {
                     "id_canal_de_ventas": id_canal_de_ventas,
                     "pedidoNombre": pedidoNombre,
                     "cedula": cedula,
+                    "pedidoTelefono": pedidoTelefono,
                     "id_order": id_order
                 }
             )

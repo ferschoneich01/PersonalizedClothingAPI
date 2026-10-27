@@ -32,6 +32,15 @@ def get_shipping():
         return jsonify({'message': str(ex)}), 500
 
 
+@main.route('/reports', methods=['GET'])
+def get_reports():
+    try:
+        report_data = ordersModel.get_sales_reports_data()
+        return jsonify(report_data)
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500
+
+
 @main.route('/<username>', methods=['GET'])
 def get_userbyUsername(username):
     try:

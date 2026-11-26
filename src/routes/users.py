@@ -182,3 +182,35 @@ def delete_user(id):
 
     except Exception as ex:
         return jsonify({'message': str(ex)}), 500
+
+
+@main.route('/<username>/addresses', methods=['GET'])
+def get_user_addresses(username):
+    try:
+        data = usersModel.get_user_addresses(username)
+        return jsonify(data), 200
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500
+
+
+@main.route('/<username>/addresses', methods=['POST'])
+def add_user_address(username):
+    try:
+        payload = request.get_json(silent=True) or {}
+        address = payload.get('address', '')
+        city = payload.get('city', 'Managua')
+        created = usersModel.add_user_address(username, address, city)
+        return jsonify(created), 201
+    except ValueError as ve:
+        return jsonify({'message': str(ve)}), 400
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500
+
+
+@main.route('/<username>/addresses/<int:id_address_person>', methods=['DELETE'])
+def delete_user_address(username, id_address_person):
+    try:
+        result = usersModel.delete_user_address(username, id_address_person)
+        return jsonify(result), 200
+    except Exception as ex:
+        return jsonify({'message': str(ex)}), 500

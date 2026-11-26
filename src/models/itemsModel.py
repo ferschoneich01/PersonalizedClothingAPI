@@ -5,6 +5,17 @@ from .entities.items import items
 
 class itemsModel():
 
+    # Filtro SQL para omitir artículos genéricos usados internamente por el personalizador 3D
+    EXCLUDE_CUSTOM_CONDITION = (
+        "COALESCE(name, '') NOT ILIKE '%(personalizado)%' "
+        "AND COALESCE(description, '') NOT ILIKE 'Artículo genérico para pedidos de%'"
+    )
+
+    EXCLUDE_CUSTOM_ALIAS_CONDITION = (
+        "COALESCE(i.name, '') NOT ILIKE '%(personalizado)%' "
+        "AND COALESCE(i.description, '') NOT ILIKE 'Artículo genérico para pedidos de%'"
+    )
+
     @classmethod
     def _build_items_response(cls, rows):
         if not rows:
@@ -46,7 +57,9 @@ class itemsModel():
     @classmethod
     def get_items(cls):
         try:
-            rows = db.execute(text("SELECT * FROM sp_get_items()")).fetchall()
+            rows = db.execute(
+                text(f"SELECT * FROM sp_get_items() WHERE {cls.EXCLUDE_CUSTOM_CONDITION}")
+            ).fetchall()
             return cls._build_items_response(rows)
         except Exception as ex:
             raise Exception(ex)
@@ -77,14 +90,14 @@ class itemsModel():
                 p_cat, p_clas = cat_int, clas_int
 
             rows = db.execute(
-                text("SELECT * FROM sp_get_items_by_category(:category, :clasification)"),
+                text(f"SELECT * FROM sp_get_items_by_category(:category, :clasification) WHERE {cls.EXCLUDE_CUSTOM_CONDITION}"),
                 {"category": p_cat, "clasification": p_clas}
             ).fetchall()
 
             # Si no devolvió nada y los parámetros son distintos, intentar en orden alterno
             if not rows and p_cat != p_clas:
                 alt_rows = db.execute(
-                    text("SELECT * FROM sp_get_items_by_category(:category, :clasification)"),
+                    text(f"SELECT * FROM sp_get_items_by_category(:category, :clasification) WHERE {cls.EXCLUDE_CUSTOM_CONDITION}"),
                     {"category": p_clas, "clasification": p_cat}
                 ).fetchall()
                 if alt_rows:
@@ -98,7 +111,7 @@ class itemsModel():
     def get_items_by_category_only(cls, category):
         try:
             rows = db.execute(
-                text("SELECT id_item, name, description, image, price, clasification, category, status_item FROM items WHERE category = :category ORDER BY id_item DESC"),
+                text(f"SELECT id_item, name, description, image, price, clasification, category, status_item FROM items WHERE category = :category AND {cls.EXCLUDE_CUSTOM_CONDITION} ORDER BY id_item DESC"),
                 {"category": int(category)}
             ).fetchall()
             return cls._build_items_response(rows)
@@ -109,7 +122,7 @@ class itemsModel():
     def get_items_by_clasification_only(cls, clasification):
         try:
             rows = db.execute(
-                text("SELECT id_item, name, description, image, price, clasification, category, status_item FROM items WHERE clasification = :clasification ORDER BY id_item DESC"),
+                text(f"SELECT id_item, name, description, image, price, clasification, category, status_item FROM items WHERE clasification = :clasification AND {cls.EXCLUDE_CUSTOM_CONDITION} ORDER BY id_item DESC"),
                 {"clasification": int(clasification)}
             ).fetchall()
             return cls._build_items_response(rows)
@@ -231,13 +244,15 @@ class itemsModel():
     @classmethod
     def get_categories(cls):
         try:
-            rows = db.execute(text("""
+            rows = db.execute(text(f"""
                 SELECT 
                     c.id_clasification,
                     c.name,
                     COUNT(i.id_item) AS items_count
                 FROM clasification c
-                LEFT JOIN items i ON i.clasification = c.id_clasification
+                LEFT JOIN items i
+                    ON i.clasification = c.id_clasification
+                   AND {cls.EXCLUDE_CUSTOM_ALIAS_CONDITION}
                 GROUP BY c.id_clasification, c.name
                 ORDER BY c.id_clasification ASC
             """)).fetchall()
@@ -291,7 +306,7 @@ class itemsModel():
 
             if row:
                 count = db.execute(
-                    text("SELECT COUNT(*) FROM items WHERE clasification = :id"),
+                    text(f"SELECT COUNT(*) FROM items WHERE clasification = :id AND {cls.EXCLUDE_CUSTOM_CONDITION}"),
                     {"id": int(id_clasification)}
                 ).scalar() or 0
                 return {
